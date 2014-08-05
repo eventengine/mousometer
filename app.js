@@ -1,9 +1,53 @@
+(function($) {
+  var _Storage = function() {
+    function _localStorageSupport() {
+      try {
+        return 'localStorage' in window && window['localStorage'] !== null;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    this.set = function (name, value) {
+      if (_localStorageSupport()) {
+        localStorage.setItem(name, value);
+      }
+      else {
+        $.cookie(name, value, 10 * 365);
+      }
+      return this;
+    }
+
+    this.get = function (name) {
+      if (_localStorageSupport()) {
+        return localStorage.getItem(name);
+      }
+      else {
+        return $.cookie(name);
+      }
+    }
+
+    this.remove = function (name) {
+      if (_localStorageSupport()) {
+        localStorage.removeItem(name);
+      }
+      else {
+        $.cookie(name, "", -1);
+      }
+      return this;
+    }
+  };
+
+  window.persistentStorage = new _Storage();
+})(jQuery);
+
 $(function() {
 
   var lastmousex = -1,
       lastmousey = -1,
       lastmousetime,
       mousetravel = 0,
+      maxSpeed = (persistentStorage) ? persistentStorage.get('maxSpeed') : 0,
       chartConfig =
       {
         chart: {
@@ -114,14 +158,20 @@ $(function() {
   $('#container').highcharts(chartConfig, function(chart) {
     if (!chart.renderer.forExport) {
       setInterval(function() {
-        chart.series[0].points[0].update(getSpeed());
+        var speed = getSpeed();
+        chart.series[0].points[0].update(speed);
+        if (window.persistentStorage && Math.max(speed, maxSpeed) == speed) {
+          maxSpeed = speed;
+          persistentStorage.set('maxSpeed', maxSpeed);
+          showHighScore()
+        }
       }, 500);
     }
   });
 
   $('html').mousemove(function(event) {
     if (lastmousex > -1)
-        mousetravel += Math.sqrt(Math.pow(event.pageX - lastmousex, 2) + Math.pow(event.pageY - lastmousey, 2));
+      mousetravel += Math.sqrt(Math.pow(event.pageX - lastmousex, 2) + Math.pow(event.pageY - lastmousey, 2));
     lastmousex = event.pageX;
     lastmousey = event.pageY;
   });
@@ -140,4 +190,9 @@ $(function() {
     return kmh;
   }
 
+  function showHighScore() {
+    $('#highscore').text(maxSpeed)
+  }
+
+  showHighScore();
 });
