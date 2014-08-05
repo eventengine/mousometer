@@ -121,7 +121,7 @@ $(function() {
 
   $('html').mousemove(function(event) {
     if (lastmousex > -1)
-      mousetravel += Math.max(Math.abs(event.pageX - lastmousex), Math.abs(event.pageY - lastmousey));
+        mousetravel += Math.sqrt(Math.pow(event.pageX - lastmousex, 2) + Math.pow(event.pageY - lastmousey, 2));
     lastmousex = event.pageX;
     lastmousey = event.pageY;
   });
