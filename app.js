@@ -117,7 +117,7 @@
     var timenow = +new Date(),
         pps = 0, //pixels pur second
         kmh = 0;
-    if (lastmousetime && lastmousetime != timenow) {
+    if (lastmousetime && lastmousetime !== timenow) {
       pps = Math.round(mousetravel / (timenow - lastmousetime) * 1000 * 2);
       //1km = 3779527px
       kmh = Math.floor((pps / 3779527) * 3600 * 100) / 100;
@@ -130,10 +130,10 @@
   $(function() {
     $('#container').highcharts(chartConfig, function(chart) {
       if (!chart.renderer.forExport) {
-        setInterval(function() {
+        window.setInterval(function() {
           var speed = getSpeed();
           chart.series[0].points[0].update(speed);
-          if (persistentStorage && Math.max(speed, maxSpeed) == speed) {
+          if (persistentStorage && Math.max(speed, maxSpeed) === speed) {
             maxSpeed = speed;
             persistentStorage.set('maxSpeed', maxSpeed);
             showHighScore();
@@ -143,8 +143,9 @@
     });
 
     $('html').mousemove(function(event) {
-      if (lastmousex > -1)
+      if (lastmousex > -1) {
         mousetravel += Math.sqrt(Math.pow(event.pageX - lastmousex, 2) + Math.pow(event.pageY - lastmousey, 2));
+      }
       lastmousex = event.pageX;
       lastmousey = event.pageY;
     });
@@ -155,4 +156,4 @@
 
     showHighScore();
   });
-})(jQuery, persistentStorage);
+})(jQuery, window.persistentStorage);

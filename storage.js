@@ -1,45 +1,69 @@
 (function($) {
   'use strict';
-
-  function _localStorageSupport() {
+  var localStorage = window.localStorage;
+  function _storageFabric() {
     try {
-      return 'localStorage' in window && window.localStorage !== null;
+      if ('localStorage' in window && window.localStorage !== null) {
+        return new LocalStorage();
+      }
     } catch (e) {
-      return false;
+      return new CookieStorage();
     }
   }
 
-  var _isStorageSupported = _localStorageSupport();
 
-  window.persistentStorage = {
-    set: function (name, value) {
-      if (_isStorageSupported) {
-        localStorage.setItem(name, value);
-      }
-      else {
-        $.cookie(name, value, 10 * 365);
-      }
+  function LocalStorage() {
+    var _storage = window.localStorage;
+
+    this.get = function(name){
+      return _storage.getItem(name);
+    };
+
+    this.set = function(name, value){
+      _storage.setItem(name, value);
       return this;
-    },
+    };
 
-    get: function (name) {
-      if (_isStorageSupported) {
-        return localStorage.getItem(name);
-      }
-      else {
-        return $.cookie(name);
-      }
-    },
-
-    remove: function (name) {
-      if (_isStorageSupported) {
-        localStorage.removeItem(name);
-      }
-      else {
-        $.cookie(name, "", -1);
-      }
+    this.remove = function(name){
+      _storage.removeItem(name);
       return this;
-    }
-  };
+    };
+  }
+
+  function CookieStorage() {
+    var _storage = $.cookie;
+
+    this.get = function(name){
+      return _storage(name);
+    };
+
+    this.set = function(name, value){
+      _storage(name, value, 10 * 365);
+      return this;
+    };
+
+    this.remove = function(name){
+      _storage(name, '', -1);
+      return this;
+    };
+  }
+
+  function StorageAdapter(adapter) {
+    this.set = function(name, value){
+      adapter.set(name, value);
+      return this;
+    };
+
+    this.get = function(name) {
+      return adapter.get(name);
+    };
+
+    this.remove = function(name) {
+      adapter.remove(name);
+      return this;
+    };
+  }
+
+  window.persistentStorage = new StorageAdapter(_storageFabric());
 
 })(jQuery);

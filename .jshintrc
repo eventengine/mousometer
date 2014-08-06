@@ -1,5 +1,15 @@
 {
+  "curly": true,
+  "eqnull": true,
+  "eqeqeq": true,
   "undef": true,
-  "unused": true,
-  "predef": [ "window", "jQuery", "setInterval", "persistentStorage", "localStorage" ]
+  "quotmark": "single",
+  "globals": {
+    "jQuery": true,
+    "window": true,
+    "process": false,
+    "moment": true,
+    "mocks": true,
+    "findMockById": true
+  }
 }
