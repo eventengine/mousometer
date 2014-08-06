@@ -1,0 +1,15 @@
+{
+  "curly": true,
+  "eqnull": true,
+  "eqeqeq": true,
+  "undef": true,
+  "quotmark": "single",
+  "globals": {
+    "jQuery": true,
+    "window": true,
+    "process": false,
+    "moment": true,
+    "mocks": true,
+    "findMockById": true
+  }
+}

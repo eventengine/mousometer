@@ -1,9 +1,11 @@
-$(function() {
+(function($, persistentStorage) {
+  'use strict';
 
   var lastmousex = -1,
       lastmousey = -1,
       lastmousetime,
       mousetravel = 0,
+      maxSpeed = (persistentStorage) ? persistentStorage.get('maxSpeed') : 0,
       chartConfig =
       {
         chart: {
@@ -111,26 +113,11 @@ $(function() {
       };
 
 
-  $('#container').highcharts(chartConfig, function(chart) {
-    if (!chart.renderer.forExport) {
-      setInterval(function() {
-        chart.series[0].points[0].update(getSpeed());
-      }, 500);
-    }
-  });
-
-  $('html').mousemove(function(event) {
-    if (lastmousex > -1)
-      mousetravel += Math.max(Math.abs(event.pageX - lastmousex), Math.abs(event.pageY - lastmousey));
-    lastmousex = event.pageX;
-    lastmousey = event.pageY;
-  });
-
   function getSpeed() {
     var timenow = +new Date(),
         pps = 0, //pixels pur second
         kmh = 0;
-    if (lastmousetime && lastmousetime != timenow) {
+    if (lastmousetime && lastmousetime !== timenow) {
       pps = Math.round(mousetravel / (timenow - lastmousetime) * 1000 * 2);
       //1km = 3779527px
       kmh = Math.floor((pps / 3779527) * 3600 * 100) / 100;
@@ -140,4 +127,33 @@ $(function() {
     return kmh;
   }
 
-});
+  $(function() {
+    $('#container').highcharts(chartConfig, function(chart) {
+      if (!chart.renderer.forExport) {
+        window.setInterval(function() {
+          var speed = getSpeed();
+          chart.series[0].points[0].update(speed);
+          if (persistentStorage && Math.max(speed, maxSpeed) === speed) {
+            maxSpeed = speed;
+            persistentStorage.set('maxSpeed', maxSpeed);
+            showHighScore();
+          }
+        }, 500);
+      }
+    });
+
+    $('html').mousemove(function(event) {
+      if (lastmousex > -1) {
+        mousetravel += Math.sqrt(Math.pow(event.pageX - lastmousex, 2) + Math.pow(event.pageY - lastmousey, 2));
+      }
+      lastmousex = event.pageX;
+      lastmousey = event.pageY;
+    });
+
+    function showHighScore() {
+      $('#highscore').text(maxSpeed);
+    }
+
+    showHighScore();
+  });
+})(jQuery, window.persistentStorage);

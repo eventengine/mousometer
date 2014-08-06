@@ -6,6 +6,7 @@
   <script src="http://code.highcharts.com/highcharts.js"></script>
   <script src="http://code.highcharts.com/highcharts-more.js"></script>
   <script src="http://code.highcharts.com/modules/exporting.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js"></script>
   <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
   <title>Mousometer by Stepan Suvorov</title>
   <style>
@@ -17,14 +18,64 @@
       position: absolute;
       width: 100%;
     }
+
+    #highscore {
+      margin: 0 3px;
+      color: #20B188;
+      vertical-align: -3px;
+      font-weight: bold;
+      font-size: 250%;
+    }
   </style>
+  <script src="storage.js"></script>
 </head>
 <body>
+<div id="fb-root"></div>
+<script>
+    window.fbAsyncInit = function() {
+        FB.init({
+            appId: '774122049319308', cookie: true, status: true, xfbml: true, oauth: true
+        });
+        var fbAuth = null;
+        var fbShare = function() {
+            speed = persistentStorage.get('maxSpeed');
+
+            FB.ui({
+                method: "feed",
+                display: "iframe",
+                link: "http://stepansuvorov.com/useIt/mousometer/",
+                caption: "Mouseometer",
+                description: "I can run my mouse at <b>{speed}</b>km/h! How fast are you with your mouse?".replace('{speed}', speed),
+                picture: "https://camo.githubusercontent.com/ad2ba9ba77b388c535e89c6f9b60cfbe37787b0c/687474703a2f2f73746570616e7375766f726f762e636f6d2f626c6f672f77702d636f6e74656e742f75706c6f6164732f323031342f30372f6e584e6c7266357a4e59436259724a4f5259506b426854324a616c5574616e5253636f6f4146566d2d65492e706e67"
+            });
+        };
+        $("#fb-publish").click(function() {
+            if (!fbAuth) {
+                FB.login(function(response) {
+                    if (response.authResponse) {
+                        fbAuth = response.authResponse;
+                        fbShare();
+                    }
+                }, {scope: 'publish_stream'});
+            } else {
+                fbShare();
+            }
+        });
+    };
+
+    (function(d){
+        var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
+        if (d.getElementById(id)) {return;}
+        js = d.createElement('script'); js.id = id; js.async = true;
+        js.src = "//connect.facebook.net/en_US/all.js";
+        ref.parentNode.insertBefore(js, ref);
+    }(document));
+</script>
+<br/><br/><br/>
 
 
 <div id="container" style="min-width: 310px; max-width: 400px; height: 300px; margin: 0 auto"></div>
-<br/><br/><br/>
-
+<p style="text-align: center">Your highscore is <span id="highscore"></span>km/h! <button id="fb-publish">Share to Facebook</button></p>
 
 <footer class="footer">
   <div class="container text-center small grey">
